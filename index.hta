@@ -1,0 +1,434 @@
+﻿<html>
+
+<head>
+    <title>ClickOnce Apps</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=9" />
+    <meta charset="utf-8">
+    <hta:application id="app" icon="index.hta.ico" navigable="no" />
+</head>
+
+<body>
+
+    <div id="target"></div>
+
+    <script type="text/javascript">
+
+        var _includeHiddenManifests = false;
+        var _subFoldersOnly = true;
+        var _Recursive = false;
+        var _rootFolderPath = 'C:\\users\\public\\clickonce-index-hta-sample-apps';
+        //var _rootFolderPath = '.';
+
+        var _deploymentPageFixedFileName = 'index.html';
+        var _deploymentPageFileExtension = 'htm';
+
+        var target = document.getElementById('target');
+
+        groupBy(getClickOnceAppInfos(), 'publisher').forEach(function (publisherGroup) {
+
+            if (publisherGroup.key != null) {
+
+                var h1 = document.createElement("h1");
+                h1.appendChild(document.createTextNode(publisherGroup.key));
+                target.appendChild(h1);
+            }
+
+            var suiteNameGroups = groupBy(publisherGroup.items, 'suiteName');
+
+            suiteNameGroups.forEach(function (suiteNameGroup) {
+
+                if (suiteNameGroup.key != null) {
+
+                    var h2 = document.createElement("h2");
+                    h2.appendChild(document.createTextNode(suiteNameGroup.key));
+                    target.appendChild(h2);
+                }
+
+                var apps = suiteNameGroup.items.filter(function (item) { return item.vstoApplication == null; });
+                if (apps.length > 0) {
+
+                    var list = document.createElement("ul");
+                    addListItems(list, apps);
+                    target.appendChild(list);
+                }
+
+                var vstos = suiteNameGroup.items.filter(function (item) { return item.vstoApplication != null; });
+                if (vstos.length > 0) {
+
+                    var list = document.createElement("ul");
+                    addListItems(list, vstos);
+                    target.appendChild(list);
+                }
+            });
+        });
+
+        function groupBy(array, key) {
+
+            return array.reduce(function(result, current)  {
+
+                var currentKeyValue = current[key];
+
+                var currentGroup = result.filter(function (item) { return item.key == currentKeyValue; })[0];
+        
+                if (!currentGroup) {
+
+                    currentGroup = { key: currentKeyValue, items: [] };
+
+                    result.push(currentGroup);
+                }
+
+                currentGroup.items.push(current);
+                
+                return result;
+
+            }, []);
+        }
+
+        function addListItems(list, clickOnceAppInfos) {
+
+            clickOnceAppInfos.forEach(function (item, index, array) {
+
+                var li = document.createElement("li");
+
+                var iconImg = document.createElement("img");
+                iconImg.src = item.iconPath != null ? item.iconPath : item.vstoApplication == 'Excel'
+                    ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAL5SURBVFhH7ZbPaxNBFMffm6ZSsIceKvRQ2fQiVQOtVFDxsC2YKqIHoX+AvYlFSpP2JvQoQlsI+OPosQoeKoqQpqCiBw8F60V6SwI9eOjBQ8EUknl+d3a2xjbZpM3GUz8wmXlvd3Ze3vfN7NIxUeCkxgedebfLmoeCbd8U3kLoTFNEQ8EYT+nSZR4oZrIF2IeiZgBhC6GvScsBDKTGl9E1XKgemuUCieqxZjhlKgTB/g0gPS52eCS0yKRifmHNUERkq7CUO+2NkeGo4K+eDEEToTm019U+3y9bzNxvJ0WYATy8ugacVPIuMuLmF1cnrcswkE7msWwcfrN2hBLQWapwyZrEHTKB7pJUeM73+HCH/uxloJUAftn+n4JDAHeg57Q18WTpI/Hu4U3rCbjsFXlTAWhNM6R4Q4leJuY+uB5g4hPsmG+YOezf5XNUCUKLkBWNFBezH4XpKf5NqVN2Xzrp66P7F2+F0AygisuiYv52kfIj79/EU8kcNLxmbqhCE48p0qPW9Bgi4TikeGNtC3sy9TSXAaaY0uWp4sL7n7q8O+PMJodrLW7QlRLqoBA0Id5G5naqfb4fx1AVoRnwgHO7sLh6yhtD++eYcc9c2EdbasAgsmFHOG75lR1GRsMMIAW3tYqtK6ok8gvZNWThA2ZVa21Aeg9sQ8jQzyTb1mMQgQ/SBhmIGW9dZDO/lHsXTycfwhhBW9NEGSx0IAAcQhv5THbMWlYCggS5mhJYM1wCTZJx590YC00h8lvO7M2+4tLqCrKyJ0urNJBATDXjpovWXsHPd7RLmHrDuCxa6yvYNt7r3IDdchXp79ekHluXITjUAgka10CT1DoH8MAEE3+xtgG+CSzaHX0AbduGbSa6DNTchhT7fxIc8ZNsLwDs9bcwEp4+1nUo9tdAs+wFEHDuvttdOtE5WFGcwEHif5ILXr/+90BdIgugHs6020OqcxBlO8zC56FtAm87bDPq9a63PYB6nEm5vbvclTj5u7T+49mnHes+pkmI/gCaM3yP3fh96QAAAABJRU5ErkJggg=='
+                    : 'data:image/png;base64,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';
+                iconImg.width = 32;
+                iconImg.height = 32;
+                li.appendChild(iconImg);
+
+                var productSpan = document.createElement('span');
+                productSpan.className = 'product'
+                productSpan.appendChild(document.createTextNode(item.product));
+
+                if (item.deploymentPagePath != null) {
+
+                    var deploymentPageAnchor = document.createElement("a");
+                    deploymentPageAnchor.href = item.deploymentPagePath;
+                    deploymentPageAnchor.appendChild(productSpan);
+                    li.appendChild(deploymentPageAnchor);
+                }
+                else {
+
+                    li.appendChild(productSpan);
+                }
+
+                var versionParagraph = document.createElement('p');
+                versionParagraph.className = 'version'
+                versionParagraph.appendChild(document.createTextNode('v' + item.version));
+                li.appendChild(versionParagraph);
+
+                if (item.description != null) {
+
+                    // VSTO は規定でプロジェクト名（アセンブリ名）が入ってるので保留
+                    // var descriptionParagraph = document.createElement('p');
+                    // descriptionParagraph.className = 'description'
+                    // descriptionParagraph.appendChild(document.createTextNode(item.description));
+                    // li.appendChild(descriptionParagraph);
+                }
+
+                var actionsParagraph = document.createElement("p");
+                actionsParagraph.style.marginLeft = '48px';
+                actionsParagraph.className = 'actions'
+
+                if (item.vstoApplication == null) {
+
+                    var deploymentManifestButton = document.createElement("button");
+                    deploymentManifestButton.innerText = '起動';
+                    deploymentManifestButton.onclick = function () { window.open(item.deploymentManifextPath) };
+
+                    actionsParagraph.appendChild(deploymentManifestButton);
+                }
+                else {
+
+                    var deploymentManifestButton = document.createElement("button");
+                    deploymentManifestButton.innerText = 'インストール';
+                    deploymentManifestButton.onclick = function () { window.open(item.deploymentManifextPath) };
+
+                    actionsParagraph.appendChild(deploymentManifestButton);
+
+                    if (item.vstoDocumentPath != null) {
+
+                        var vstoDocumentButton = document.createElement("button");
+                        vstoDocumentButton.innerText = 'ダウンロード';
+                        vstoDocumentButton.onclick = function () { window.open(item.vstoDocumentPath) };
+
+                        actionsParagraph.appendChild(vstoDocumentButton);
+                    }
+                }
+
+                if (item.supportUrl != null) {
+
+                    var supportUrlButton = document.createElement("button");
+                    supportUrlButton.innerText = 'サイト';
+                    supportUrlButton.onclick = function () { window.open(item.supportUrl) };
+
+                    actionsParagraph.appendChild(supportUrlButton);
+                }
+
+                li.appendChild(actionsParagraph);
+
+                list.appendChild(li);
+            });
+        }
+
+        // ClickOnce アプリケーションの情報を取得
+        function getClickOnceAppInfos() {
+
+            var fso = new ActiveXObject("Scripting.FileSystemObject");
+
+            var rootFolder = fso.GetFolder(_rootFolderPath);
+
+            var deploymentManifests = [];
+
+            findDeploymentManifests(fso, rootFolder, _subFoldersOnly, _Recursive, deploymentManifests);
+
+            var results = [];
+
+            deploymentManifests.forEach(function (item, index, array) {
+
+                var xmlDom = new ActiveXObject("MSXML2.DOMDocument");
+
+                // 配置マニフェストから情報を取得
+
+                xmlDom.load(item.path);
+
+                var descriptionNode = xmlDom.documentElement.selectSingleNode("/asmv1:assembly/description");
+                var publisher = descriptionNode.getAttribute("asmv2:publisher");
+                var product = descriptionNode.getAttribute("asmv2:product");
+                var suiteName = descriptionNode.getAttribute("co.v1:suiteName");
+                var supportUrl = descriptionNode.getAttribute("asmv2:supportUrl");
+
+                var assemblyIdentityNode = xmlDom.documentElement.selectSingleNode("/asmv1:assembly/assemblyIdentity");
+                var version = assemblyIdentityNode.getAttribute("version");
+
+                var dependentAssemblyNode = xmlDom.documentElement.selectSingleNode("/asmv1:assembly/dependency/dependentAssembly");
+                var codebase = dependentAssemblyNode.getAttribute("codebase");
+                var codebasePath = fso.Buildpath(item.ParentFolder, codebase);
+                var codebaseFile = fso.GetFile(codebasePath);
+
+                // アプリケーションマニフェストから情報を取得
+
+                xmlDom.load(codebasePath);
+
+                var iconPath, description;
+
+                var descriptionNode = xmlDom.documentElement.selectSingleNode("/asmv1:assembly/description");
+                if (descriptionNode != null) {
+
+                    description = descriptionNode.text;
+
+                    var iconFileName = descriptionNode.getAttribute("asmv2:iconFile");
+                    if (iconFileName != null) {
+
+                        iconPath = fso.Buildpath(codebaseFile.ParentFolder.Path, iconFileName);
+                        iconPath = fso.FileExists(iconPath) ? iconPath : iconPath + ".deploy";
+                    }
+                }
+
+                var vstoApplication, vstoDocumentPath;
+
+                if (fso.GetExtensionName(item).toLowerCase() == 'vsto') {
+
+                    var appAddInNode = xmlDom.documentElement.selectSingleNode("/asmv1:assembly/vstav3:addIn/vstav3:application/vstov4:customizations/vstov4:customization/vstov4:appAddIn");
+                    if (appAddInNode != null) {
+
+                        vstoApplication = appAddInNode.getAttribute("application");
+                    }
+                    else {
+
+                        var files = new Enumerator(item.ParentFolder.files);
+
+                        for (; !files.atEnd(); files.moveNext()) {
+
+                            var file = files.item();
+                            var extensionName = fso.GetExtensionName(file).toLowerCase();
+
+                            if (extensionName == 'xlsx' | extensionName == 'xlsb' | extensionName == 'xlsm' | extensionName == 'xls') {
+
+                                vstoApplication = 'Excel';
+                                vstoDocumentPath = file.Path;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // 配置ページの有無確認
+                var deploymentPageFileName = _deploymentPageFixedFileName != null
+                    ? _deploymentPageFixedFileName
+                    : item.Name.split('.').slice(0, -1).join('.') + '.' + _deploymentPageFileExtension;
+
+                var deploymentPagePath = fso.Buildpath(item.ParentFolder.Path, deploymentPageFileName);
+                deploymentPagePath = fso.FileExists(deploymentPagePath) ? deploymentPagePath : null;
+
+                results.push(
+                    {
+                        deploymentManifextPath: item.Path,
+                        deploymentPagePath: deploymentPagePath,
+                        iconPath: iconPath,
+                        product: product,
+                        publisher: publisher,
+                        version: version,
+                        suiteName: suiteName,
+                        supportUrl: supportUrl,
+                        description: description,
+                        vstoApplication: vstoApplication,
+                        vstoDocumentPath: vstoDocumentPath
+                    });
+            });
+
+            return results;
+        }
+
+        // 配置マニフェストの配列を作成
+        function findDeploymentManifests(fso, folder, subFoldersOnly, recursive, deploymentManifests) {
+
+            if (!subFoldersOnly) {
+
+                var files = new Enumerator(folder.files);
+
+                for (; !files.atEnd(); files.moveNext()) {
+
+                    var file = files.item();
+
+                    if (_includeHiddenManifests || ((file.Attributes & 2) != 2)) {
+
+                        var extensionName = fso.GetExtensionName(file).toLowerCase();
+
+                        if (extensionName == 'application' | extensionName == 'vsto') {
+
+                            var xmlDom = new ActiveXObject("MSXML2.DOMDocument");
+
+                            if (xmlDom.load(file.path)) {
+
+                                var codebase = xmlDom.documentElement.selectSingleNode("/asmv1:assembly/dependency/dependentAssembly").getAttribute("codebase");
+
+                                var codebasePath = fso.Buildpath(folder.Path, codebase);
+
+                                if (fso.FileExists(codebasePath)) {
+
+                                    deploymentManifests.push(file);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (subFoldersOnly | recursive) {
+
+                var subFolders = new Enumerator(folder.subFolders);
+
+                for (; !subFolders.atEnd(); subFolders.moveNext()) {
+
+                    var subFolder = subFolders.item();
+
+                    if (_includeHiddenManifests || ((subFolder.Attributes & 2) != 2)) {
+
+                        findDeploymentManifests(fso, subFolder, false, recursive, deploymentManifests);
+                    }
+                }
+            }
+        }
+
+        // 相対パスを作成
+        // https://gist.github.com/eriwen/1211656
+        function getRelativePath(source, target) {
+            var sep = (source.indexOf("/") !== -1) ? "/" : "\\",
+                targetArr = target.split(sep),
+                sourceArr = source.split(sep),
+                filename = targetArr.pop(),
+                targetPath = targetArr.join(sep),
+                relativePath = "";
+
+            while (targetPath.indexOf(sourceArr.join(sep)) === -1) {
+                sourceArr.pop();
+                relativePath += ".." + sep;
+            }
+
+            var relPathArr = targetArr.slice(sourceArr.length);
+            relPathArr.length && (relativePath += relPathArr.join(sep) + sep);
+
+            return relativePath + filename;
+        }
+    </script>
+
+    <style type="text/css">
+
+        /*
+        body{
+          background-color:#BBBB0E;
+          color:#cccccc;
+        }
+        */
+
+        button {
+            background-color: #1fa67a;
+            border: none;
+            border-bottom: solid 1px #dadada; /*下に灰色線*/
+            border-right: solid 1px #dadada; /*右に灰色線*/
+            color: white;
+            padding: 6px 16px 8px 16px;
+            margin: 4px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            opacity: .7;
+        }
+
+        html {
+            font-family: 'Yu Gothic UI';
+        }
+
+        span.product {
+            font-Size: 2.4rem;
+            font-weight: bold;
+            margin-left: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300;
+        }
+
+        p.version {
+            margin-left: 48px;
+            margin-top: 4px;
+        }
+
+        p.actions {
+            margin-left: 48px;
+            margin-bottom: 0px;
+        }
+
+        p.description {
+            margin-left: 48px;
+            margin-top: 4px;
+            color: darkgray;
+        }
+
+        ul {
+            margin: 16px;
+            padding: 16px;
+            list-style-type: none;
+            overflow: hidden;
+        }
+
+        ul li, ol li {
+            border-left: solid 6px #1fa67a; /*左側の線*/
+            border-bottom: solid 2px #dadada; /*下に灰色線*/
+            border-right: solid 2px #dadada; /*右に灰色線*/
+            background: whitesmoke;
+            padding: 1em;
+            float: left;
+            margin: 8px;
+            min-width: 400px;
+        }
+    </style>
+
+</body>
+
+</html>
